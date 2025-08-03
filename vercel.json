@@ -1,16 +1,7 @@
 {
-  "version": 2,
   "functions": {
     "api/scrape-episode.js": {
-      "maxDuration": 30
+      "maxDuration": 60
     }
-  },
-  "build": {
-    "env": {
-      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true"
-    }
-  },
-  "buildCommand": "echo 'No build needed for API-only project'",
-  "outputDirectory": ".",
-  "installCommand": "npm install"
+  }
 }
