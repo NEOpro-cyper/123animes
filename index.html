@@ -1,4 +1,23 @@
-<!DOCTYPE html>
+<script>
+        async function testAPI() {
+            const responseDiv = document.getElementById('response');
+            const episodeUrl = document.getElementById('episodeUrl').value;
+            
+            if (!episodeUrl) {
+                responseDiv.textContent = 'Please enter an episode URL';
+                responseDiv.className = 'response error';
+                return;
+            }
+            
+            responseDiv.textContent = 'Testing API... This may take 10-30 seconds...';
+            responseDiv.className = 'response loading';
+            
+            try {
+                const response = await fetch('/api/scrape-episode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
