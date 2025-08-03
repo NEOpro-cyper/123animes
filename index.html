@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Scraper API</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .endpoint {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .method {
+            background: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            display: block;
+            margin: 10px 0;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .example {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .response {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .loading {
+            color: #ffc107;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎌 Anime Scraper API</h1>
+        
+        <div class="endpoint">
+            <span class="method">POST</span>
+            <strong>/api/scrape-episode</strong>
+            
+            <h3>Description:</h3>
+            <p>Scrapes anime episode data including streaming links and poster images from anime websites.</p>
+            
+            <h3>Request Body:</h3>
+            <code>{
+  "episodeUrl": "https://w1.123animes.ru/anime/your-anime/episode-1"
+}</code>
+            
+            <h3>Response Example:</h3>
+            <code>{
+  "success": true,
+  "data": {
+    "title": "Attack On Titan",
+    "episode_number": "1",
+    "episode_url": "https://w1.123animes.ru/anime/attack-on-titan/episode-1",
+    "streaming_link": "https://example-stream.com/embed/xyz123",
+    "image": "https://example.com/poster.jpg",
+    "range_id": "single-episode",
+    "strategy": "single-episode",
+    "source": "123animes"
+  },
+  "extraction_time_seconds": 5.234
+}</code>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Test the API</h3>
+            <label>Episode URL:</label>
+            <input type="text" id="episodeUrl" placeholder="https://w1.123animes.ru/anime/naruto/episode-1" value="https://w1.123animes.ru/anime/naruto/episode-1">
+            
+            <button onclick="testAPI()">🚀 Test Scrape Episode</button>
+            
+            <h4>Response:</h4>
+            <div id="response" class="response">Ready to test...</div>
+        </div>
+
+        <div class="example">
+            <h3>📝 cURL Example:</h3>
+            <code>curl -X POST https://your-domain.vercel.app/api/scrape-episode \
+  -H "Content-Type: application/json" \
+  -d '{
+    "episodeUrl": "https://w1.123animes.ru/anime/naruto/episode-1"
+  }'</code>
+        </div>
+
+        <div class="example">
+            <h3>🐍 Python Example:</h3>
+            <code>import requests
+
+url = "https://your-domain.vercel.app/api/scrape-episode"
+payload = {"episodeUrl": "https://w1.123animes.ru/anime/naruto/episode-1"}
+
+response = requests.post(url, json=payload)
+data = response.json()
+print(data)</code>
+        </div>
+
+        <div class="example">
+            <h3>⚡ Features:</h3>
+            <ul>
+                <li>✅ Extracts streaming links from anime episodes</li>
+                <li>✅ Finds poster/cover images</li>
+                <li>✅ Handles multiple iframe sources</li>
+                <li>✅ Blocks ads and unwanted content</li>
+                <li>✅ Retry mechanism for finding streaming links</li>
+                <li>✅ Detailed error reporting and debug info</li>
+                <li>✅ Fast serverless deployment</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            const responseDiv = document.getElementById('response');
+            const episodeUrl = document.getElementById('episodeUrl').value;
+            
+            if (!episodeUrl) {
+                responseDiv.textContent = 'Please enter an episode URL';
+                responseDiv.className = 'response error';
+                return;
+            }
+            
+            responseDiv.textContent = 'Testing API... This may take 5-15 seconds...';
+            responseDiv.className = 'response loading';
+            
+            try {
+                const response = await fetch('/api/scrape-episode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        episodeUrl: episodeUrl
+                    })
+                });
+                
+                const data = await response.json();
+                responseDiv.textContent = JSON.stringify(data, null, 2);
+                responseDiv.className = response.ok ? 'response success' : 'response error';
+                
+            } catch (error) {
+                responseDiv.textContent = `Error: ${error.message}`;
+                responseDiv.className = 'response error';
+            }
+        }
+    </script>
+</body>
+</html>
