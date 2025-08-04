@@ -1,5 +1,5 @@
 // Simple test endpoint to verify API routing works
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
     // Set proper JSON headers
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
