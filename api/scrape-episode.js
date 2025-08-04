@@ -1,20 +1,19 @@
+import chromium from 'chrome-aws-lambda';
 import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export default async function handler(req, res) {
-    // Set CORS headers
+    // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    
-    // Handle preflight request
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        res.status(200).end();
+        return;
     }
 
-    // Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ 
             success: false, 
@@ -23,176 +22,134 @@ export default async function handler(req, res) {
     }
 
     const { episodeUrl } = req.body;
-
+    
     if (!episodeUrl) {
         return res.status(400).json({ 
             success: false, 
-            error: 'episodeUrl is required in request body' 
+            error: 'Episode URL is required in request body' 
         });
     }
 
     let browser = null;
     const startTime = Date.now();
-
+    
     try {
-        console.log('🚀 Starting browser...');
+        console.log(`🚀 Starting scrape for: ${episodeUrl}`);
         
+        // Launch browser with Vercel-optimized settings
         browser = await puppeteer.launch({
-            args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+            args: [
+                ...chromium.args,
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--single-process',
+                '--no-zygote'
+            ],
             defaultViewport: chromium.defaultViewport,
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
+            executablePath: await chromium.executablePath,
+            headless: true,
             ignoreHTTPSErrors: true,
         });
         
         const page = await browser.newPage();
         
+        // Set user agent
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         
-        // Block unnecessary resources
+        // Simplified request interception for Vercel
         await page.setRequestInterception(true);
         page.on('request', (req) => {
             const resourceType = req.resourceType();
             const url = req.url();
             
-            if (['font', 'media', 'websocket', 'manifest'].includes(resourceType) ||
-                url.includes('.mp4') ||
-                url.includes('.mp3') ||
+            // Block heavy resources to save memory and time
+            if (['font', 'media', 'websocket', 'manifest', 'image'].includes(resourceType) ||
                 url.includes('google-analytics') ||
                 url.includes('googletagmanager') ||
-                url.includes('facebook.com') ||
-                url.includes('twitter.com') ||
-                url.includes('dtscout.com') ||
                 url.includes('ads') ||
                 url.includes('doubleclick') ||
-                url.includes('adsystem') ||
-                url.includes('googlesyndication')) {
+                url.includes('.mp4') ||
+                url.includes('.mp3')) {
                 req.abort();
             } else {
                 req.continue();
             }
         });
         
-        console.log(`🔍 Loading episode: ${episodeUrl}`);
-        
+        // Navigate to page with timeout
         await page.goto(episodeUrl, { 
             waitUntil: 'domcontentloaded',
-            timeout: 20000 
+            timeout: 20000
         });
         
+        // Wait for content to load
         await delay(3000);
         
-        // Enhanced image extraction
+        // Extract anime image with optimized selectors
         const animeImage = await page.evaluate(() => {
             const imageSelectors = [
                 '.anime-poster img',
                 '.poster img',
                 '.anime-image img',
                 '.anime-cover img',
-                '.show-poster img',
-                '.thumbnail img',
-                '.anime-info img',
-                '.series-poster img',
-                '.film-poster img',
-                '.movie-poster img',
-                'img[alt*="poster"]',
-                'img[alt*="cover"]',
-                'img[class*="poster"]',
-                'img[class*="cover"]',
-                'img[src*="poster"]',
-                'img[src*="cover"]',
-                '.anime-details img',
-                '.anime-meta img',
-                '.series-info img',
+                'img[alt*="poster" i]',
+                'img[alt*="cover" i]',
+                'img[class*="poster" i]',
+                'img[class*="cover" i]',
                 '.inner img',
                 '.item img'
             ];
             
-            // Try specific selectors first
             for (const selector of imageSelectors) {
                 const img = document.querySelector(selector);
                 if (img) {
                     let imageSrc = img.getAttribute('data-src') ||
                                  img.getAttribute('data-original') ||
-                                 img.getAttribute('data-lazy') ||
                                  img.getAttribute('src') ||
                                  img.src;
                     
-                    if (imageSrc && imageSrc.startsWith('http')) {
-                        if (!imageSrc.includes('no_poster.png') &&
-                            !imageSrc.includes('no_poster.jpg') &&
-                            !imageSrc.includes('placeholder.') &&
-                            !imageSrc.includes('default.jpg') &&
-                            !imageSrc.includes('no-image.') &&
-                            !imageSrc.includes('loading.') &&
-                            !imageSrc.includes('lazy.') &&
-                            imageSrc !== 'about:blank' &&
-                            imageSrc.length > 10) {
-                            return imageSrc;
-                        }
-                    }
-                }
-            }
-            
-            // Fallback to any valid image
-            const allImages = document.querySelectorAll('img');
-            for (const img of allImages) {
-                let imageSrc = img.getAttribute('data-src') ||
-                             img.getAttribute('data-original') ||
-                             img.getAttribute('data-lazy') ||
-                             img.getAttribute('src') ||
-                             img.src;
-                
-                if (imageSrc) {
-                    if (imageSrc.startsWith('/')) {
-                        imageSrc = 'https://w1.123animes.ru' + imageSrc;
-                    }
-                    
-                    if (imageSrc.startsWith('http') && 
-                        (imageSrc.includes('.jpg') || imageSrc.includes('.png') || imageSrc.includes('.jpeg')) &&
+                    if (imageSrc && imageSrc.startsWith('http') && 
                         !imageSrc.includes('no_poster') &&
                         !imageSrc.includes('placeholder') &&
                         !imageSrc.includes('default.jpg') &&
-                        !imageSrc.includes('logo') &&
-                        !imageSrc.includes('icon') &&
-                        !imageSrc.includes('banner') &&
-                        !imageSrc.includes('ad') &&
-                        imageSrc.length > 10 &&
-                        img.width > 80 && 
-                        img.height > 80) {
+                        imageSrc.length > 20) {
+                        
+                        // Make relative URLs absolute
+                        if (imageSrc.startsWith('/')) {
+                            imageSrc = 'https://w1.123animes.ru' + imageSrc;
+                        }
+                        
                         return imageSrc;
                     }
                 }
             }
-            
             return null;
         });
         
+        // Find streaming link with retry logic
         let streamingLink = null;
         let attempts = 0;
         const maxAttempts = 3;
         
         while (!streamingLink && attempts < maxAttempts) {
             attempts++;
-            console.log(`🔍 Attempt ${attempts}/${maxAttempts} to find iframe...`);
+            console.log(`🔍 Attempt ${attempts}/${maxAttempts} to find streaming link`);
             
             streamingLink = await page.evaluate(() => {
                 const blockedDomains = [
-                    'dtscout.com', 'google.com', 'googletagmanager.com',
-                    'doubleclick.net', 'googlesyndication.com', 'googleadservices.com',
-                    'adsystem.com', 'recaptcha', 'facebook.com', 'twitter.com',
-                    'instagram.com', 'tiktok.com', 'ads', 'ad-', 'analytics',
-                    'tracking', 'metric', 'about:blank'
+                    'dtscout.com', 'google.com', 'googletagmanager',
+                    'doubleclick.net', 'ads', 'analytics', 'facebook.com'
                 ];
                 
                 const validStreamingPatterns = [
-                    'bunnycdn', 'embed', 'play', 'stream', 'video', 'player',
-                    'vidsrc', 'vidplay', 'filemoon', 'doodstream', 'streamtape',
-                    'mp4upload', 'mixdrop', 'upstream', 'streamwish', 'vid', 'watch'
+                    'bunnycdn', 'embed', 'play', 'stream', 'video', 
+                    'player', 'vidsrc', 'vidplay', 'filemoon'
                 ];
                 
                 const isValidStreamingLink = (src) => {
-                    if (!src || src === 'about:blank' || !src.startsWith('http') || src.length < 25) {
+                    if (!src || !src.startsWith('http') || src.length < 25) {
                         return false;
                     }
                     
@@ -202,18 +159,34 @@ export default async function handler(req, res) {
                     
                     if (isBlocked) return false;
                     
-                    return validStreamingPatterns.some(pattern => 
+                    const isValidStreaming = validStreamingPatterns.some(pattern => 
                         src.toLowerCase().includes(pattern.toLowerCase())
                     );
+                    
+                    return isValidStreaming;
                 };
                 
-                const iframes = document.querySelectorAll('iframe');
+                // Check priority selectors first
+                const prioritySelectors = [
+                    'iframe[src*="bunnycdn"]',
+                    'iframe[src*="embed"]',
+                    'iframe[src*="play"]',
+                    'iframe[src*="stream"]'
+                ];
                 
+                for (const selector of prioritySelectors) {
+                    const iframe = document.querySelector(selector);
+                    if (iframe && iframe.src && isValidStreamingLink(iframe.src)) {
+                        return iframe.src;
+                    }
+                }
+                
+                // Check all iframes
+                const iframes = document.querySelectorAll('iframe');
                 for (const iframe of iframes) {
                     const src = iframe.src || 
                               iframe.getAttribute('src') || 
-                              iframe.getAttribute('data-src') ||
-                              iframe.getAttribute('data-lazy');
+                              iframe.getAttribute('data-src');
                     
                     if (src && isValidStreamingLink(src)) {
                         return src;
@@ -223,14 +196,16 @@ export default async function handler(req, res) {
                 return null;
             });
             
+            // If no streaming link found, try clicking play buttons
             if (!streamingLink && attempts < maxAttempts) {
                 await page.evaluate(() => {
-                    const buttons = document.querySelectorAll('button, .play-btn, .load-btn, [onclick], .btn');
+                    const buttons = document.querySelectorAll('button, .play-btn, .load-btn, [onclick]');
                     for (const btn of buttons) {
                         const text = btn.textContent?.toLowerCase() || '';
                         if (text.includes('play') || text.includes('load') || text.includes('watch')) {
                             try {
                                 btn.click();
+                                console.log(`Clicked button: ${text.substring(0, 20)}`);
                                 break;
                             } catch (e) {
                                 // Ignore click errors
@@ -239,12 +214,12 @@ export default async function handler(req, res) {
                     }
                 });
                 
-                await delay(2000 + (attempts * 1000));
+                await delay(2000);
             }
         }
         
         if (streamingLink) {
-            // Extract episode info
+            // Extract episode information
             const episodePatterns = [
                 /episode[\/\-]?(\d+)/i,
                 /ep[\/\-]?(\d+)/i,
@@ -261,6 +236,7 @@ export default async function handler(req, res) {
                 }
             }
             
+            // Extract anime title from URL
             let animeTitle = 'Unknown Anime';
             const urlParts = episodeUrl.split('/');
             const animeIndex = urlParts.findIndex(part => part === 'anime');
@@ -277,41 +253,62 @@ export default async function handler(req, res) {
                 episode_url: episodeUrl,
                 streaming_link: streamingLink,
                 image: animeImage,
-                range_id: 'single-episode',
-                strategy: 'single-episode',
-                source: '123animes'
+                source: '123animes',
+                extraction_time_seconds: parseFloat(((Date.now() - startTime) / 1000).toFixed(3)),
+                timestamp: new Date().toISOString()
             };
+            
+            console.log(`✅ Successfully scraped: ${animeTitle} - Episode ${episodeNumber}`);
             
             return res.status(200).json({
                 success: true,
-                data: streamingData,
-                extraction_time_seconds: parseFloat(((Date.now() - startTime) / 1000).toFixed(3))
+                data: streamingData
             });
             
         } else {
+            console.log(`❌ No streaming link found after ${maxAttempts} attempts`);
+            
+            // Get debug information
+            const debugInfo = await page.evaluate(() => {
+                const iframes = document.querySelectorAll('iframe');
+                return {
+                    totalIframes: iframes.length,
+                    iframeSources: Array.from(iframes).map(iframe => ({
+                        src: (iframe.src || '').substring(0, 60),
+                        id: iframe.id || 'no-id',
+                        class: iframe.className || 'no-class'
+                    })),
+                    pageTitle: document.title,
+                    url: window.location.href
+                };
+            });
+            
             return res.status(404).json({
                 success: false,
-                error: 'No valid streaming iframe found after multiple attempts',
+                error: 'No valid streaming link found',
                 episode_url: episodeUrl,
+                debug: debugInfo,
                 extraction_time_seconds: parseFloat(((Date.now() - startTime) / 1000).toFixed(3))
             });
         }
         
     } catch (error) {
-        console.error('❌ Error scraping episode:', error);
+        console.error('❌ Scraping error:', error.message);
+        
         return res.status(500).json({
             success: false,
-            error: `Server error: ${error.message}`,
-            episode_url: episodeUrl || 'unknown',
+            error: error.message,
+            episode_url: episodeUrl,
             extraction_time_seconds: parseFloat(((Date.now() - startTime) / 1000).toFixed(3))
         });
         
     } finally {
+        // Always close browser to prevent memory leaks
         if (browser) {
             try {
                 await browser.close();
             } catch (e) {
-                console.error('Error closing browser:', e);
+                console.error('Error closing browser:', e.message);
             }
         }
     }
