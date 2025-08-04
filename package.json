@@ -1,22 +1,25 @@
 {
   "name": "anime-scraper-vercel",
   "version": "1.0.0",
-  "description": "Anime episode scraper for Vercel",
+  "description": "Lightweight anime episode scraper using Cheerio + Axios for Vercel",
   "main": "index.html",
-  "type": "module",
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'Build complete'",
+    "build": "echo 'No build step required'",
     "start": "vercel dev"
   },
   "dependencies": {
-    "chrome-aws-lambda": "^10.1.0",
-    "puppeteer-core": "^21.0.0"
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "vercel": "^32.5.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18"
   },
-  "keywords": ["anime", "scraper", "vercel", "puppeteer"],
+  "keywords": ["anime", "scraper", "vercel", "cheerio", "axios"],
   "author": "Your Name",
   "license": "MIT"
 }
