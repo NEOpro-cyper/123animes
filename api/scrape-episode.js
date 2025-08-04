@@ -1,5 +1,5 @@
-import axios from 'axios';
-import * as cheerio from 'cheerio';
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 // Enhanced user agents rotation for better success rate
 const USER_AGENTS = [
@@ -350,7 +350,7 @@ const extractStreamingLink = ($) => {
 };
 
 // Main scraping function
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // Set proper headers for all responses
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
