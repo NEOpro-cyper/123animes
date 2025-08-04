@@ -5,19 +5,18 @@
   "main": "index.html",
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'No build step required'",
+    "build": "mkdir -p public && cp index.html public/",
     "start": "vercel dev"
   },
   "dependencies": {
     "axios": "^1.6.2",
-    "cheerio": "^1.0.0-rc.12",
-    "cors": "^2.8.5"
+    "cheerio": "^1.0.0-rc.12"
   },
   "devDependencies": {
     "vercel": "^32.5.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": "18.x"
   },
   "keywords": ["anime", "scraper", "vercel", "cheerio", "axios"],
   "author": "Your Name",
