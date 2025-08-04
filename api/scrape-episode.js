@@ -351,20 +351,46 @@ const extractStreamingLink = ($) => {
 
 // Main scraping function
 export default async function handler(req, res) {
+    // Set proper headers for all responses
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
     // Handle CORS preflight
     if (req.method === 'OPTIONS') {
-        return res.status(200).json({});
+        return res.status(200).json({ message: 'CORS preflight' });
+    }
+    
+    // Only allow GET and POST methods
+    if (!['GET', 'POST'].includes(req.method)) {
+        return res.status(405).json({
+            success: false,
+            error: `Method ${req.method} not allowed. Use GET or POST.`
+        });
     }
     
     const startTime = Date.now();
     
     try {
+        // Get episodeUrl from query params or body
         const { episodeUrl } = req.method === 'GET' ? req.query : req.body;
         
+        // Validate input
         if (!episodeUrl) {
             return res.status(400).json({
                 success: false,
-                error: 'episodeUrl parameter is required'
+                error: 'episodeUrl parameter is required',
+                example: '/api/scrape-episode?episodeUrl=https://w1.123animes.ru/anime/naruto/episode-1'
+            });
+        }
+        
+        // Validate URL format
+        if (!episodeUrl.startsWith('http')) {
+            return res.status(400).json({
+                success: false,
+                error: 'episodeUrl must be a valid HTTP/HTTPS URL',
+                provided: episodeUrl
             });
         }
         
@@ -372,11 +398,28 @@ export default async function handler(req, res) {
         
         const axiosInstance = createAxiosInstance();
         
-        // Fetch the HTML content
-        const response = await axiosInstance.get(episodeUrl);
+        // Fetch the HTML content with enhanced error handling
+        let response;
+        try {
+            response = await axiosInstance.get(episodeUrl);
+        } catch (axiosError) {
+            console.error('Axios request failed:', axiosError.message);
+            return res.status(500).json({
+                success: false,
+                error: `Failed to fetch episode page: ${axiosError.message}`,
+                episode_url: episodeUrl,
+                status_code: axiosError.response?.status || 'unknown',
+                extraction_time_seconds: parseFloat(((Date.now() - startTime) / 1000).toFixed(3))
+            });
+        }
         
         if (response.status !== 200) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            return res.status(500).json({
+                success: false,
+                error: `HTTP ${response.status}: ${response.statusText}`,
+                episode_url: episodeUrl,
+                extraction_time_seconds: parseFloat(((Date.now() - startTime) / 1000).toFixed(3))
+            });
         }
         
         const $ = cheerio.load(response.data);
@@ -478,12 +521,18 @@ export default async function handler(req, res) {
         }
         
     } catch (error) {
-        console.error('❌ Error scraping episode:', error.message);
+        console.error('❌ Scraping error:', error);
         
+        // Ensure we always return JSON
         return res.status(500).json({
             success: false,
-            error: error.message,
-            extraction_time_seconds: parseFloat(((Date.now() - startTime) / 1000).toFixed(3))
+            error: error.message || 'Unknown error occurred',
+            episode_url: req.query.episodeUrl || req.body?.episodeUrl || 'unknown',
+            extraction_time_seconds: parseFloat(((Date.now() - startTime) / 1000).toFixed(3)),
+            debug: {
+                error_type: error.constructor.name,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            }
         });
     }
 }
