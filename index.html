@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anime Episode Scraper</title>
+    <title>🎌 Anime Episode Scraper - Vercel Edition</title>
     <style>
         * {
             margin: 0;
@@ -12,20 +12,24 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
         }
 
         .container {
-            max-width: 800px;
-            margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 40px;
+            max-width: 600px;
+            width: 100%;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .header {
@@ -37,7 +41,7 @@
             color: #333;
             font-size: 2.5rem;
             margin-bottom: 10px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -57,67 +61,64 @@
             margin-bottom: 8px;
             color: #333;
             font-weight: 600;
-            font-size: 1.1rem;
         }
 
         input[type="url"] {
             width: 100%;
-            padding: 15px 20px;
+            padding: 15px;
             border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: 10px;
+            font-size: 16px;
             transition: all 0.3s ease;
-            background: #f8f9fa;
         }
 
         input[type="url"]:focus {
             outline: none;
             border-color: #667eea;
-            background: white;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1.1rem;
+            border-radius: 10px;
+            font-size: 16px;
             font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s ease;
-            width: 100%;
             position: relative;
             overflow: hidden;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
 
         .btn:disabled {
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
         .loading {
             display: none;
-            text-align: center;
-            margin: 20px 0;
-            color: #667eea;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
         }
 
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            margin-right: 10px;
         }
 
         @keyframes spin {
@@ -126,20 +127,22 @@
         }
 
         .result {
-            margin-top: 30px;
-            padding: 25px;
-            border-radius: 15px;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
             display: none;
         }
 
         .result.success {
-            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
-            color: white;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
         }
 
         .result.error {
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            color: white;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
         }
 
         .result-content {
@@ -149,92 +152,68 @@
         }
 
         .result-image {
-            flex-shrink: 0;
-        }
-
-        .result-image img {
             width: 120px;
-            height: 170px;
+            height: 160px;
             object-fit: cover;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .result-details {
-            flex: 1;
+            border-radius: 8px;
+            flex-shrink: 0;
         }
 
         .result-details h3 {
             margin-bottom: 10px;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
         }
 
         .result-details p {
             margin-bottom: 8px;
-            opacity: 0.9;
         }
 
         .streaming-link {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 15px;
             word-break: break-all;
-        }
-
-        .copy-btn {
-            background: rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
             margin-top: 10px;
-            transition: all 0.3s ease;
+            font-family: monospace;
         }
 
-        .copy-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-        }
-
-        .examples {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
+        .example {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
             border-left: 4px solid #667eea;
         }
 
-        .examples h4 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .examples p {
-            color: #666;
-            font-size: 0.9rem;
+        .example h4 {
+            color: #667eea;
             margin-bottom: 8px;
         }
 
-        @media (max-width: 600px) {
+        .example code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        @media (max-width: 768px) {
             .container {
-                padding: 20px;
+                padding: 25px;
                 margin: 10px;
             }
-
+            
             .header h1 {
                 font-size: 2rem;
             }
-
+            
             .result-content {
                 flex-direction: column;
-                text-align: center;
             }
-
-            .result-image img {
-                width: 100px;
-                height: 140px;
+            
+            .result-image {
+                width: 100%;
+                height: 200px;
             }
         }
     </style>
@@ -242,8 +221,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎬 Anime Episode Scraper</h1>
-            <p>Extract streaming links and episode information from anime URLs</p>
+            <h1>🎌 Anime Scraper</h1>
+            <p>Lightweight Cheerio + Axios powered scraper for Vercel</p>
         </div>
 
         <form id="scrapeForm">
@@ -253,11 +232,11 @@
                     type="url" 
                     id="episodeUrl" 
                     name="episodeUrl" 
-                    placeholder="https://w1.123animes.ru/anime/your-anime-name/episode-1"
+                    placeholder="https://w1.123animes.ru/anime/example/episode-1"
                     required
                 >
             </div>
-
+            
             <button type="submit" class="btn" id="scrapeBtn">
                 🚀 Scrape Episode
             </button>
@@ -265,20 +244,17 @@
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Scraping episode data... This may take 20-30 seconds</p>
+            <span>Scraping episode data...</span>
         </div>
 
         <div class="result" id="result">
-            <div class="result-content" id="resultContent">
-                <!-- Results will be inserted here -->
-            </div>
+            <div id="resultContent"></div>
         </div>
 
-        <div class="examples">
-            <h4>📝 Example URLs:</h4>
-            <p>• https://w1.123animes.ru/anime/your-anime-name/episode-1</p>
-            <p>• https://w1.123animes.ru/anime/attack-on-titan/episode-5</p>
-            <p><strong>Note:</strong> This scraper works with 123animes.ru episode URLs</p>
+        <div class="example">
+            <h4>📝 Example Usage:</h4>
+            <p>Try scraping: <code>https://w1.123animes.ru/anime/your-favorite-anime/episode-1</code></p>
+            <p><strong>API Endpoint:</strong> <code>/api/scrape-episode?episodeUrl=YOUR_URL</code></p>
         </div>
     </div>
 
@@ -292,117 +268,83 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const episodeUrl = document.getElementById('episodeUrl').value.trim();
+            const episodeUrl = document.getElementById('episodeUrl').value;
             
-            if (!episodeUrl) {
-                alert('Please enter an episode URL');
-                return;
-            }
-
             // Show loading state
-            loading.style.display = 'block';
+            loading.style.display = 'flex';
             result.style.display = 'none';
             scrapeBtn.disabled = true;
-            scrapeBtn.textContent = 'Scraping...';
-
+            scrapeBtn.textContent = '⏳ Scraping...';
+            
             try {
-                const response = await fetch('/api/scrape-episode', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ episodeUrl })
-                });
-
+                const response = await fetch(`/api/scrape-episode?episodeUrl=${encodeURIComponent(episodeUrl)}`);
                 const data = await response.json();
-
+                
                 // Hide loading
                 loading.style.display = 'none';
+                scrapeBtn.disabled = false;
+                scrapeBtn.textContent = '🚀 Scrape Episode';
+                
+                // Show result
                 result.style.display = 'block';
-
+                
                 if (data.success) {
-                    // Success result
                     result.className = 'result success';
                     resultContent.innerHTML = `
-                        <div class="result-image">
-                            ${data.data.image ? `<img src="${data.data.image}" alt="Anime Poster" onerror="this.style.display='none'">` : '<div style="width:120px;height:170px;background:#ddd;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#999;">No Image</div>'}
-                        </div>
-                        <div class="result-details">
-                            <h3>✅ ${data.data.title || 'Unknown Anime'}</h3>
-                            <p><strong>Episode:</strong> ${data.data.episode_number || 'Unknown'}</p>
-                            <p><strong>Source:</strong> ${data.data.source || '123animes'}</p>
-                            <p><strong>Extraction Time:</strong> ${data.data.extraction_time_seconds}s</p>
-                            
-                            <div class="streaming-link">
-                                <strong>🎥 Streaming Link:</strong><br>
-                                <span style="font-size: 0.9rem;">${data.data.streaming_link}</span>
-                                <button class="copy-btn" onclick="copyToClipboard('${data.data.streaming_link}')">
-                                    📋 Copy Link
-                                </button>
+                        <div class="result-content">
+                            ${data.data.image ? `<img src="${data.data.image}" alt="Anime Poster" class="result-image" onerror="this.style.display='none'">` : ''}
+                            <div class="result-details">
+                                <h3>✅ Scraping Successful!</h3>
+                                <p><strong>Title:</strong> ${data.data.title}</p>
+                                <p><strong>Episode:</strong> ${data.data.episode_number}</p>
+                                <p><strong>Source:</strong> ${data.data.source}</p>
+                                <p><strong>Extraction Time:</strong> ${data.extraction_time_seconds}s</p>
+                                <div class="streaming-link">
+                                    <strong>Streaming Link:</strong><br>
+                                    <a href="${data.data.streaming_link}" target="_blank" rel="noopener">${data.data.streaming_link}</a>
+                                </div>
                             </div>
                         </div>
                     `;
                 } else {
-                    // Error result
                     result.className = 'result error';
                     resultContent.innerHTML = `
-                        <div class="result-details">
-                            <h3>❌ Scraping Failed</h3>
-                            <p><strong>Error:</strong> ${data.error || 'Unknown error occurred'}</p>
-                            <p><strong>URL:</strong> ${data.episode_url || episodeUrl}</p>
-                            ${data.debug ? `
-                                <details style="margin-top: 15px;">
-                                    <summary style="cursor: pointer; padding: 5px;">🔍 Debug Information</summary>
-                                    <pre style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 0.8rem; overflow-x: auto;">${JSON.stringify(data.debug, null, 2)}</pre>
-                                </details>
-                            ` : ''}
-                        </div>
+                        <h3>❌ Scraping Failed</h3>
+                        <p><strong>Error:</strong> ${data.error}</p>
+                        <p><strong>Episode URL:</strong> ${data.episode_url || episodeUrl}</p>
+                        <p><strong>Extraction Time:</strong> ${data.extraction_time_seconds}s</p>
+                        ${data.debug ? `
+                            <details style="margin-top: 15px;">
+                                <summary>🔍 Debug Information</summary>
+                                <pre style="margin-top: 10px; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(data.debug, null, 2)}</pre>
+                            </details>
+                        ` : ''}
                     `;
                 }
-
+                
             } catch (error) {
-                // Network or parsing error
+                // Hide loading
                 loading.style.display = 'none';
+                scrapeBtn.disabled = false;
+                scrapeBtn.textContent = '🚀 Scrape Episode';
+                
+                // Show error
                 result.style.display = 'block';
                 result.className = 'result error';
                 resultContent.innerHTML = `
-                    <div class="result-details">
-                        <h3>❌ Request Failed</h3>
-                        <p><strong>Error:</strong> ${error.message}</p>
-                        <p>Please check your internet connection and try again.</p>
-                    </div>
+                    <h3>❌ Network Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Please check your internet connection and try again.</p>
                 `;
-            } finally {
-                // Reset button
-                scrapeBtn.disabled = false;
-                scrapeBtn.textContent = '🚀 Scrape Episode';
             }
         });
 
-        // Copy to clipboard function
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // Show temporary success message
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = '✅ Copied!';
-                btn.style.background = 'rgba(76, 175, 80, 0.8)';
-                
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = 'rgba(255, 255, 255, 0.3)';
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                alert('Failed to copy to clipboard');
-            });
-        }
-
-        // Auto-fill example URL for testing
+        // Auto-fill example URL for demo
         document.addEventListener('DOMContentLoaded', () => {
             const urlInput = document.getElementById('episodeUrl');
-            // You can uncomment this line to auto-fill for testing:
-            // urlInput.value = 'https://w1.123animes.ru/anime/your-anime-name/episode-1';
+            if (!urlInput.value) {
+                urlInput.placeholder = 'https://w1.123animes.ru/anime/your-anime-title/episode-1';
+            }
         });
     </script>
 </body>
