@@ -1,21 +1,22 @@
 {
-  "name": "anime-scraper-api",
+  "name": "anime-scraper-vercel",
   "version": "1.0.0",
-  "description": "Anime episode scraper API for Vercel",
-  "main": "index.js",
+  "description": "Anime episode scraper for Vercel",
+  "main": "index.html",
+  "type": "module",
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'No build step required'",
-    "start": "vercel --prod"
+    "build": "echo 'Build complete'",
+    "start": "vercel dev"
   },
   "dependencies": {
-    "puppeteer-core": "^21.5.2",
-    "@sparticuz/chromium": "^119.0.2"
+    "chrome-aws-lambda": "^10.1.0",
+    "puppeteer-core": "^21.0.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.0.0"
   },
-  "keywords": ["anime", "scraper", "api", "vercel"],
+  "keywords": ["anime", "scraper", "vercel", "puppeteer"],
   "author": "Your Name",
   "license": "MIT"
 }
